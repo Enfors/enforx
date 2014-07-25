@@ -1,0 +1,46 @@
+Hmm. Let's see if I can make sense of how to build simple data structures with the typical CAR / CDR
+type thing in Lisp.
+  
+  
+  Lists
+  =====
+  Lists are simple enough.
+  
+  +-----+-----+    +-----+-----+
+  | car | cdr |--->| car | cdr |---> NULL
+  +-----+-----+    +-----+-----+
+     |
+     |
+     V
+    Data
+    
+  
+  Trees
+  =====
+  Trees work too. But they lack the ability to attach non-child data to non-leaf nodes...
+  
+  +-----+-----+
+  | car | cdr |---> NULL
+  +-----+-----+
+     |
+     |
+     V
+  +-----+-----+    +-----+-----+
+  | car | cdr |--->| car | cdr |---> NULL
+  +-----+-----+    +-----+-----+
+     |                |
+     |                V
+     |             +-----+-----+    +-----+-----+
+     |             | car | cdr |--->| car | cdr |---> NULL
+     |             +-----+-----+    +-----+-----+
+     |                |                |
+     |                V                V
+     |               Leaf             Leaf
+     V
+  +-----+-----+    +-----+-----+    +-----+-----+
+  | car | cdr |--->| car | cdr |--->| car | cdr |---> NULL
+  +-----+-----+    +-----+-----+    +-----+-----+
+     |                |                |
+     V                V                V
+    Leaf             Leaf             Leaf
+    
