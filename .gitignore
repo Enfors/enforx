@@ -3,6 +3,7 @@
 *.ko
 *.obj
 *.elf
+enforx
 
 # Libraries
 *.lib
@@ -21,3 +22,10 @@
 *.i*86
 *.x86_64
 *.hex
+
+# Generated files
+*.tab.c
+*.yy.c
+*.tab.h
+
+# Backup files
