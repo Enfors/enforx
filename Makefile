@@ -7,3 +7,6 @@ enforx: enforx.l enforx.y enforx.h
 
 test-enforx: test-enforx.c enforx.c enforx.h
 	gcc test-enforx.c enforx.c -o $@
+
+clean:
+	rm -f enforx test-enforx
