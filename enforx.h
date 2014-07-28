@@ -12,7 +12,7 @@ typedef struct symbol_t
 
 } symbol_t;
 
-enum { TYPE_LONG, TYPE_STR, TYPE_SYM, TYPE_PARENT };
+enum { TYPE_NUM, TYPE_STR, TYPE_SYM, TYPE_PARENT };
 
 typedef struct sexp_t
 {
@@ -30,3 +30,10 @@ typedef struct sexp_t
   struct sexp_t *cdr;
 
 } sexp_t;
+
+
+/*
+ * Macros meant to be replaced by functions at a later date.
+ */
+
+#define Malloc(x)        malloc(x)
