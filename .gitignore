@@ -29,3 +29,4 @@ enforx
 *.tab.h
 
 # Backup files
+*~
