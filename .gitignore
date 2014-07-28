@@ -4,6 +4,7 @@
 *.obj
 *.elf
 enforx
+test-enforx
 
 # Libraries
 *.lib
