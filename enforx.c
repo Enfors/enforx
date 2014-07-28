@@ -10,146 +10,189 @@
  * sexp functions
  */
 
-sexp_t *sexp_new(unsigned const int type)
+sym_t *sym_new(unsigned const int type)
 {
-  sexp_t *sexp = Malloc(sizeof(sexp_t));
+  sym_t *sym = Malloc(sizeof(sym_t));
 
-  sexp->type = type;
+  sym->type = type;
 
   switch (type)
     {
     case TYPE_NUM:
-      sexp->num = 0;
+      sym->num = 0;
       break;
 
     case TYPE_STR:
-      sexp->str = NULL;
+      sym->str = NULL;
       break;
 
-    case TYPE_SYM:
-      sexp->sym = NULL;
-      break;
-
-    case TYPE_PARENT:
-      sexp->child = NULL;
+    default:
+      fprintf(stderr, "Error: sym_new: unsupported type '%d'.\n", type);
       break;
     }
 
-  return sexp;
+  return sym;
 }
 
-sexp_t *sexp_del(sexp_t *sexp)
+void sym_del(sym_t *sym)
 {
-  sexp_t *cdr;
-
-  if (sexp == NULL)
-    return NULL;
-
-  cdr = sexp->cdr;
-
-  Free(sexp);
-
-  return cdr;
-}
-
-void sexp_print(sexp_t *sexp)
-{
-  if (sexp == NULL)
-    printf("NULL sexp");
-
-  switch (sexp->type)
+  sym_t *cdr;
+  
+  if (sym == NULL)
+    return;
+  
+  switch (sym->type)
     {
     case TYPE_NUM:
-      printf("%d", sexp->num);
+      break;
+      
+    case TYPE_STR:
+      if (sym->str)
+	Free(sym->str);
+      break;
+
+    default:
+      fprintf(stderr, "Error: sym_del: unsupported type '%d'.\n", sym->type);
+      break;
+    }
+  
+  Free(sym);
+}
+
+sym_t *sym_ref(sym_t *sym)
+{
+  /* todo: increase ref count. */
+  return sym;
+}
+
+sym_t *sym_unref(sym_t *sym)
+{
+  /* todo: decrease ref count. */
+  return NULL;
+}
+
+void sym_print(sym_t *sym)
+{
+  if (sym == NULL)
+    printf("NULL sym");
+
+  switch (sym->type)
+    {
+    case TYPE_NUM:
+      printf("%d", sym->num);
       break;
 
     case TYPE_STR:
-      if (sexp->str)
-	printf("\"%s\"", sexp->str);
+      if (sym->str)
+	printf("\"%s\"", sym->str);
       else
 	printf("\"\"");
       break;
 
     default:
-      fprintf(stderr, "Error: sexp_print: unsupported type '%d'.\n", sexp->type);
+      fprintf(stderr, "Error: sym_print: unsupported type '%d'.\n", sym->type);
       break;
     }
 }
 
+void sym_clear(sym_t *sym)
+{
+  assert(sym != NULL);
+
+  switch (sym->type)
+    {
+    case TYPE_NUM:
+      sym->num = 0;
+      break;
+
+    case TYPE_STR:
+      if (sym->str)
+	Free(sym->str);
+      sym->str = NULL;
+      break;
+
+    default:
+      fprintf(stderr, "Error: sym_clear: unsupported type '%d'.\n", sym->type);
+      break;
+    }
+}
+
+void sym_set_num(sym_t *sym, long num)
+{
+  sym_clear(sym);
+
+  sym->type = TYPE_NUM;
+  sym->num  = num;
+}
+
+void sym_set_str(sym_t *sym, char *str)
+{
+  sym_clear(sym);
+
+  sym->type = TYPE_STR;
+  sym->str  = str;
+}
+ 
+/*
+ *
+ * sexp functions.
+ *
+ */
+
+sexp_t *sexp_ref(sexp_t *sexp)
+{
+  /* todo: increase ref count */
+  return sexp;
+}
+
+sexp_t *sexp_unref(sexp_t *sexp)
+{
+  /* todo: decrease ref count */
+  return NULL;
+}
+ 
 void sexp_clear(sexp_t *sexp)
 {
   assert(sexp != NULL);
 
   switch (sexp->type)
     {
-    case TYPE_NUM:
-      sexp->num = 0;
-      break;
-
-    case TYPE_STR:
-      if (sexp->str)
-	Free(sexp->str);
-      sexp->str = NULL;
-      break;
-
-    case TYPE_SYM:
-      if (sexp->sym)
-	{
-	  Free(sexp->sym);
-	  fprintf(stderr, "Warning: sexp_clear: should probably call a sym_del() function here.\n");
-	}
+    case CAR_SYM:
+      assert(sexp->sym != NULL);
+      sym_unref(sexp->sym);
       sexp->sym = NULL;
       break;
 
-    case TYPE_PARENT:
-      if (sexp->child)
-	Free(sexp->child);
-      sexp->child = NULL;
-      break;
+    case CAR_SEXP:
+      if (sexp->car == NULL)
+	return;
+
+      sexp_unref(sexp->car);
+      sexp->car = NULL;
     }
 }
 
-void sexp_set_num(sexp_t *sexp, long num)
+void sexp_set_sym(sexp_t *sexp, sym_t *sym)
 {
   sexp_clear(sexp);
 
-  sexp->type = TYPE_NUM;
-  sexp->num  = num;
+  sexp->type = CAR_SYM;
+  sexp->sym  = sym_ref(sym);
 }
 
-void sexp_set_str(sexp_t *sexp, char *str)
-{
-  sexp_clear(sexp);
-
-  sexp->type = TYPE_STR;
-  sexp->str  = str;
-}
-
-void sexp_set_sym(sexp_t *sexp, symbol_t *sym)
-{
-  sexp_clear(sexp);
-
-  sexp->type = TYPE_SYM;
-  sexp->sym  = sym;
-}
-
-void sexp_set_child(sexp_t *parent_sexp, sexp_t *child_sexp)
+void sexp_set_car(sexp_t *parent_sexp, sexp_t *car_sexp)
 {
   sexp_clear(parent_sexp);
   
-  parent_sexp->type  = TYPE_PARENT;
-  parent_sexp->child = child_sexp;
+  parent_sexp->type = CAR_SEXP;
+  parent_sexp->car  = sexp_ref(car_sexp);
 }
 
 sexp_t *sexp_push(sexp_t *stack, sexp_t *sexp)
 {
-  if (sexp == NULL)
-    {
-      fprintf(stderr, "Error: sexp_push(): sexp is NULL\n");
-      exit(1);
-    }
+  assert(sexp != NULL);
 
-  sexp->cdr = stack;
+  sexp->cdr = sexp_ref(stack);
 
   return sexp;
 }
@@ -165,7 +208,7 @@ sexp_t *sexp_pop(sexp_t *stack)
   if (stack == NULL)
     return NULL;
 
-  sexp = stack;
+  sexp = sexp_ref(stack);
   sexp->cdr = NULL;
 
   return sexp;

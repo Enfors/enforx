@@ -4,8 +4,22 @@
 #  define  NULL 0
 #endif
 
-typedef struct symbol_t
+enum { TYPE_NUM, TYPE_STR };
+
+/*
+ *
+ * sym_t
+ *
+ */
+
+typedef struct sym_t
 {
+  /* A symbol can be an actual LISP style symbol - that is, a value with
+   * an attached name, as in (setq my-symbol 1). But it can also be an
+   * "anonymous" value (without a name). For example, in (setq foo 1) the
+   * "1" is an anonymous symbol.
+   */
+  unsigned int type; /* TYPE_NUM, TYPE_STR */
   char name[MAX_SYMBOL_NAME_SIZE];
   
   union
@@ -14,23 +28,46 @@ typedef struct symbol_t
     char    *str;
   };
 
-} symbol_t;
+} sym_t;
 
-enum { TYPE_NUM, TYPE_STR, TYPE_SYM, TYPE_PARENT };
+/*
+ *
+ * sexp_t
+ *
+ */
+
+enum { CAR_SYM, CAR_SEXP };
 
 typedef struct sexp_t
 {
+  /* A sexp can be one of two types. CAR_SYM means that its car is a a
+   * symbol (anonymous, IE lacking a name, or otherwise), while
+   * CAR_SEXP means that it has another sexp as a car.
+   *
+   * CAR_SYM:              | CAR_SEXP:   
+   * ========              | =========
+   *                       |
+   * +------+              | +------+
+   * | SEXP |--> NULL      | | SEXP |--> NULL
+   * +------+              | +------+
+   *    |                  |    |
+   *    V                  |    V
+   * +------+              | +------+
+   * | SYM  |              | | SEXP |--> NULL
+   * +------+              | +------+
+   *                       |    |
+   *                       |    V
+   *                       |   NULL
+   */
   unsigned int type;
   
   /* CAR */
-  union
+  union 
   {
-    long      num;
-    char     *str;
-    symbol_t *sym;
-    struct sexp_t   *child;
+    sym_t      *sym;
+    struct sexp_t *car;
   };
-    
+
   struct sexp_t *cdr;
 
 } sexp_t;
@@ -39,16 +76,19 @@ typedef struct sexp_t
  * Function declarations.
  */
 
-sexp_t *sexp_new(unsigned const int type);
-sexp_t *sexp_del(sexp_t *sexp);
+sym_t  *sym_new(unsigned const int type);
+void    sym_del(sym_t *sym);
 
-void    sexp_print(sexp_t *sexp);
+void    sym_print(sym_t *sym);
+
+void    sym_clear(sym_t *sym);
+void    sym_set_num(sym_t *sym, long num);
+void    sym_set_str(sym_t *sym, char *str);
+
 
 void    sexp_clear(sexp_t *sexp);
-void    sexp_set_num(sexp_t *sexp, long num);
-void    sexp_set_str(sexp_t *sexp, char *str);
-void    sexp_set_sym(sexp_t *sexp, symbol_t *sym);
-void    sexp_set_child(sexp_t *parent_sexp, sexp_t *child_sexp);
+void    sexp_set_sym(sexp_t *sexp, sym_t *sym);
+void    sexp_set_car(sexp_t *parent_sexp, sexp_t *car_sexp);
 
 sexp_t *sexp_push(sexp_t *stack, sexp_t *sexp);
 sexp_t *sexp_pop(sexp_t  *stack);
