@@ -375,19 +375,17 @@ sexp_t *sexp_push(sexp_t *stack, sexp_t *sexp)
   return sexp;
 }
 
-/* The following function would be more useful if it didn't suck.
-   It should take a ** (or something) to the stack, so that it
-   could be modified in-place to point to the new top. But I don't
-   know how to accomplish that right now. */
-sexp_t *sexp_pop(sexp_t *stack)
+sexp_t *sexp_pop(sexp_t **stack)
 {
   sexp_t *sexp;
 
-  if (stack == NULL)
+  if (*stack == NULL)
     return NULL;
 
-  sexp = sexp_ref(stack);
-  sexp->cdr = NULL;
+  sexp = sexp_ref(*stack);
+  *stack = sexp_ref(sexp->cdr);
+
+  sexp->cdr = sexp_unref(sexp->cdr); /* Stop pointing and dec ref_count */
 
   return sexp;
 }

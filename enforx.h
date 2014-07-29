@@ -111,7 +111,7 @@ void    sexp_set_car(sexp_t *parent_sexp, sexp_t *car_sexp);
 void    sexp_set_cdr(sexp_t *sexp, sexp_t *cdr_sexp);
 
 sexp_t *sexp_push(sexp_t *stack, sexp_t *sexp);
-sexp_t *sexp_pop(sexp_t  *stack);
+sexp_t *sexp_pop(sexp_t **stack);
 
 /*
  * Macros meant to be replaced by functions at a later date.
