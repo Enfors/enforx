@@ -28,6 +28,8 @@ typedef struct sym_t
     char    *str;
   };
 
+  int ref_count;
+
 } sym_t;
 
 /*
@@ -70,6 +72,8 @@ typedef struct sexp_t
 
   struct sexp_t *cdr;
 
+  int ref_count;
+
 } sexp_t;
 
 /*
@@ -85,10 +89,26 @@ void    sym_clear(sym_t *sym);
 void    sym_set_num(sym_t *sym, long num);
 void    sym_set_str(sym_t *sym, char *str);
 
+sexp_t *sexp_new(unsigned const int type, sym_t *sym);
+void    sexp_del(sexp_t *sexp);
 
+sexp_t *sexp_ref(sexp_t *sexp);
+sexp_t *sexp_unref(sexp_t *sexp);
+
+/*
+void    sexp_set_car_sym(sexp_t *sexp,  sym_t  *sym);
+void    sexp_set_car_sexp(sexp_t *sexp, sexp_t *car);
+*/
+
+void    sexp_print(sexp_t *sexp);
+void    sexp_print_tree(sexp_t *sexp, int indent);
+void    sexp_print_lisp_tree(sexp_t *sexp);
 void    sexp_clear(sexp_t *sexp);
+
 void    sexp_set_sym(sexp_t *sexp, sym_t *sym);
 void    sexp_set_car(sexp_t *parent_sexp, sexp_t *car_sexp);
+
+void    sexp_set_cdr(sexp_t *sexp, sexp_t *cdr_sexp);
 
 sexp_t *sexp_push(sexp_t *stack, sexp_t *sexp);
 sexp_t *sexp_pop(sexp_t  *stack);

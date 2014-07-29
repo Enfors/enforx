@@ -6,7 +6,7 @@ enforx: enforx.l enforx.y enforx.h
 	gcc enforx.tab.c lex.yy.c -lfl -o $@
 
 test-enforx: test-enforx.c enforx.c enforx.h
-	gcc test-enforx.c enforx.c -o $@
+	gcc -g test-enforx.c enforx.c -o $@
 
 clean:
 	rm -f enforx test-enforx
