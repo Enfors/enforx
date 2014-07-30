@@ -6,6 +6,9 @@
 
 #include "enforx.h"
 
+long num_sexps = 0;
+long num_syms  = 0;
+
 /*
  * sexp functions
  */
@@ -33,6 +36,8 @@ sym_t *sym_new(unsigned const int type)
 
   sym->ref_count = 0;
 
+  num_syms++;
+
   return sym;
 }
 
@@ -51,11 +56,13 @@ void sym_del(sym_t *sym)
       break;
 
     default:
-      fprintf(stderr, "Error: sym_del: unsupported type '%d'.\n", sym->type);
+      fprintf(stderr, "Error: sym_del(): unsupported type '%d'.\n", sym->type);
       break;
     }
   
   Free(sym);
+
+  num_syms--;
 }
 
 sym_t *sym_ref(sym_t *sym)
@@ -74,13 +81,15 @@ sym_t *sym_unref(sym_t *sym)
     return NULL;
 
   sym->ref_count--;
-  /* todo: free if ref_count <= 0 */
   
   if (sym->ref_count < 0)
     {
-      fprintf(stderr, "Warning: sym_unref: ref_count is %d. Symbol:\n", sym->ref_count);
+      fprintf(stderr, "Warning: sym_unref(): ref_count is %d. Symbol:\n", sym->ref_count);
       sym_print(sym);
     }
+
+  if (sym->ref_count == 0)
+    sym_del(sym);
 
   return NULL;
 }
@@ -177,6 +186,10 @@ sexp_t *sexp_new(unsigned const int type, sym_t *sym)
     }
 
   sexp->ref_count = 0;
+
+  num_sexps++;
+
+  return sexp;
 }
 
 void sexp_del(sexp_t *sexp)
@@ -187,15 +200,13 @@ void sexp_del(sexp_t *sexp)
     {
     case CAR_SYM:
       assert(sexp->sym != NULL);
-      sym_unref(sexp->sym);
-      sexp->sym = NULL;
+      sexp->sym = sym_unref(sexp->sym);
       break;
 
     case CAR_SEXP:
       if (sexp->car) 
 	{
-	  sexp_unref(sexp->car);
-	  sexp->car = NULL;
+	  sexp->car = sexp_unref(sexp->car);
 	}
       break;
 
@@ -205,17 +216,32 @@ void sexp_del(sexp_t *sexp)
     }
 
   Free(sexp);
+
+  sexp->cdr = sexp_unref(sexp->cdr);
+
+  num_sexps--;
 }
 
 sexp_t *sexp_ref(sexp_t *sexp)
 {
-  /* todo: increase ref count */
+  if (sexp == NULL)
+    return NULL;
+
+  sexp->ref_count++;
+
   return sexp;
 }
 
 sexp_t *sexp_unref(sexp_t *sexp)
 {
-  /* todo: decrease ref count */
+  if (! sexp)
+    return NULL;
+
+  sexp->ref_count--;
+
+  if (sexp->ref_count == 0)
+    sexp_del(sexp);
+
   return NULL;
 }
  
@@ -342,7 +368,21 @@ void sexp_set_sym(sexp_t *sexp, sym_t *sym)
 {
   assert(sexp != NULL);
 
-  sexp_clear(sexp);
+  /* Unref the old car or sym */
+  switch (sexp->type)
+    {
+    case CAR_SYM:
+      sexp->sym = sym_unref(sexp->sym);
+      break;
+
+    case CAR_SEXP:
+      sexp->car = sexp_unref(sexp->car);
+      break;
+
+    default:
+      fprintf(stderr, "Error: sexp_set_sym(): Unsupported type '%d'.\n", sexp->type);
+      break;
+    }
 
   sexp->type = CAR_SYM;
   sexp->sym  = sym_ref(sym);
@@ -362,30 +402,48 @@ void sexp_set_cdr(sexp_t *sexp, sexp_t *cdr_sexp)
 {
   assert(sexp != NULL);
 
-  sexp_ref(cdr_sexp);
-  sexp->cdr = cdr_sexp;
+  sexp->cdr = sexp_unref(sexp->cdr);
+
+  sexp->cdr = sexp_ref(cdr_sexp);
 }
 
-sexp_t *sexp_push(sexp_t *stack, sexp_t *sexp)
+sexp_t *sexp_push(sexp_t *stack2, sexp_t *sexp)
 {
   assert(sexp != NULL);
 
-  sexp->cdr = sexp_ref(stack);
+  sexp->cdr = sexp_ref(stack2);
 
   return sexp;
 }
 
-sexp_t *sexp_pop(sexp_t **stack)
+sexp_t *sexp_pop(sexp_t **stack2)
 {
   sexp_t *sexp;
 
-  if (*stack == NULL)
+  if (*stack2 == NULL)
     return NULL;
 
-  sexp = sexp_ref(*stack);
-  *stack = sexp_ref(sexp->cdr);
+  sexp = sexp_ref(*stack2);
+  *stack2 = sexp_ref(sexp->cdr);
 
   sexp->cdr = sexp_unref(sexp->cdr); /* Stop pointing and dec ref_count */
 
   return sexp;
+}
+
+/*
+ * Misc functions
+ */
+
+void enforx_end(void)
+{
+  if (num_sexps != 0)
+    {
+      fprintf(stderr, "Warning: enforx_end(): num_sexps is %d.\n", num_sexps);
+    }
+
+  if (num_syms != 0)
+    {
+      fprintf(stderr, "Warning: enforx_end(): num_syms is %d.\n", num_syms);
+    }
 }

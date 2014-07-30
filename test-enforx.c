@@ -5,13 +5,21 @@
 
 void test_sym_print(void);
 void test_sexp_print(void);
+void test_garbage_collection(void);
+
+extern long num_sexps;
+extern long num_syms;
 
 int main(int argc, char **argv)
 {
-  /*  test_sym_print(); */
+  /* test_sym_print(); */
 
-  test_sexp_print();
+  /* test_sexp_print(); */
+
+  test_garbage_collection();
   
+  enforx_end();
+
   return 0;
 }
 
@@ -34,12 +42,12 @@ void test_sym_print(void)
 
 void test_sexp_print()
 {
-  sexp_t *sexp1       = sexp_new(CAR_SEXP,     NULL);
-  sexp_t *sexp1_1     = sexp_new(  CAR_SYM,    sym_new(TYPE_NUM));
-  sexp_t *sexp1_2     = sexp_new(  CAR_SEXP,   NULL);
-  sexp_t *sexp1_2_1   = sexp_new(    CAR_SYM,  sym_new(TYPE_NUM));
-  sexp_t *sexp1_2_2   = sexp_new(    CAR_SYM,  sym_new(TYPE_STR));
-  sexp_t *sexp1_3     = sexp_new(  CAR_SYM,    sym_new(TYPE_NUM));
+  sexp_t *sexp1       = sexp_ref(sexp_new(CAR_SEXP,     NULL));
+  sexp_t *sexp1_1     = sexp_ref(sexp_new(  CAR_SYM,    sym_new(TYPE_NUM)));
+  sexp_t *sexp1_2     = sexp_ref(sexp_new(  CAR_SEXP,   NULL));
+  sexp_t *sexp1_2_1   = sexp_ref(sexp_new(    CAR_SYM,  sym_new(TYPE_NUM)));
+  sexp_t *sexp1_2_2   = sexp_ref(sexp_new(    CAR_SYM,  sym_new(TYPE_STR)));
+  sexp_t *sexp1_3     = sexp_ref(sexp_new(  CAR_SYM,    sym_new(TYPE_NUM)));
 
   sexp_set_car(sexp1,         sexp1_1);
   sexp_set_cdr(  sexp1_1,     sexp1_2);
@@ -58,4 +66,56 @@ void test_sexp_print()
   printf("\nsexp_print_lisp_tree():\n");
   sexp_print_lisp_tree(sexp1);
   printf("\n");
+
+  sexp_unref(sexp1);
+  sexp_unref(sexp1_1);
+  sexp_unref(sexp1_2);
+  sexp_unref(sexp1_2_1);
+  sexp_unref(sexp1_2_2);
+  sexp_unref(sexp1_3);
+}
+
+void test_garbage_collection(void)
+{
+  /* 
+   * This function tests the garbage collection facilities.  When you
+   * use a pointer to a sexp or sym, you first have to call its
+   * corresponding _ref() function to increase its reference count. In
+   * this case, we only have to do that on the first one, because the
+   * others will have their _ref() called when we set them as car or
+   * cdr of the first one.  If we unref (and thereby decrease
+   * ref_count to 0) one of the sexps, that one and all the ones
+   * following it will be unallocated, because there's no longer
+   * anything pointing to it. And when we unref the first one (sexp1),
+   * everything else will be unallocated for the same reason.
+   */
+  sexp_t *sexp1     = sexp_ref(sexp_new(CAR_SEXP,   NULL));
+  sexp_t *sexp1_1   =          sexp_new(  CAR_SYM,  sym_new(TYPE_NUM));
+  sexp_t *sexp1_2   =          sexp_new(  CAR_SYM,  sym_new(TYPE_NUM));
+  sexp_t *sexp1_3   =          sexp_new(  CAR_SEXP, NULL);
+  sexp_t *sexp1_3_1 =          sexp_new(  CAR_SYM,  sym_new(TYPE_NUM));
+
+  /* Construct a tree looking like "(0 0 (0))". */
+  sexp_set_car(sexp1, sexp1_1);
+
+  sexp_set_cdr(sexp1_1, sexp1_2);
+  sexp_set_cdr(sexp1_2, sexp1_3);
+  
+  sexp_set_car(sexp1_3, sexp1_3_1);
+
+  /* Print it, to make sure it looks right. */
+  sexp_print_lisp_tree(sexp1);
+  printf("\nnum_sexps: %d, num_syms: %d\n", num_sexps, num_syms);
+
+  /* Remove the cdr pointer to one of them in the middle of the list.
+   * This means that the ones following it become unreferenced, and
+   * they are unallocated. */
+  sexp_set_cdr(sexp1_2, NULL);
+
+  /* Print again, the list should look like "(0 0)" now. */
+  sexp_print_lisp_tree(sexp1);
+  printf("\nnum_sexps: %d, num_syms: %d\n", num_sexps, num_syms);
+
+  /* This should unravel the remaining parts, leaving nothing behind. */
+  sexp1 = sexp_unref(sexp1);
 }

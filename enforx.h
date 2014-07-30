@@ -83,6 +83,9 @@ typedef struct sexp_t
 sym_t  *sym_new(unsigned const int type);
 void    sym_del(sym_t *sym);
 
+sym_t  *sym_ref(sym_t *sym);
+sym_t  *sym_unref(sym_t *sym);
+
 void    sym_print(sym_t *sym);
 
 void    sym_clear(sym_t *sym);
@@ -113,6 +116,7 @@ void    sexp_set_cdr(sexp_t *sexp, sexp_t *cdr_sexp);
 sexp_t *sexp_push(sexp_t *stack, sexp_t *sexp);
 sexp_t *sexp_pop(sexp_t **stack);
 
+void    enforx_end(void);
 
 
 /*
