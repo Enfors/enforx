@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include "enforx.h"
 
+  sexp_t *stack = NULL;
+
 %}
 
 /* Declare tokens */
@@ -18,12 +20,12 @@ program: { printf("program: (empty)\n"); } /* Nothing; matches at beginning of i
 atom: NUMBER       { printf("atom: NUMBER\n"); }
 ;
 
-sexp_list: sexp    { printf("sexp_list: sexp\n"); }
-| sexp_list sexp   { printf("sexplist: sexp_list sexp\n"); }
-;
-
 sexp: atom          { printf("sexp: atom\n"); }
 | OPEN_PAREN sexp_list CLOSE_PAREN { printf("sexp: OPEN_PAREN sexp_list CLOSE_PAREN\n"); }
+;
+
+sexp_list: sexp    { printf("sexp_list: sexp\n"); }
+| sexp_list sexp   { printf("sexplist: sexp_list sexp\n"); }
 ;
 
 %%

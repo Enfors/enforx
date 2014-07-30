@@ -32,11 +32,11 @@ typedef struct sym_t
 
 } sym_t;
 
-/*
- *
- * sexp_t
- *
- */
+ /*
+  *
+  * sexp_t
+  *
+  */
 
 enum { CAR_SYM, CAR_SEXP };
 
@@ -69,11 +69,11 @@ typedef struct sexp_t
     sym_t      *sym;
     struct sexp_t *car;
   };
-
+  
   struct sexp_t *cdr;
-
+  
   int ref_count;
-
+  
 } sexp_t;
 
 /*
@@ -96,8 +96,8 @@ sexp_t *sexp_ref(sexp_t *sexp);
 sexp_t *sexp_unref(sexp_t *sexp);
 
 /*
-void    sexp_set_car_sym(sexp_t *sexp,  sym_t  *sym);
-void    sexp_set_car_sexp(sexp_t *sexp, sexp_t *car);
+  void    sexp_set_car_sym(sexp_t *sexp,  sym_t  *sym);
+  void    sexp_set_car_sexp(sexp_t *sexp, sexp_t *car);
 */
 
 void    sexp_print(sexp_t *sexp);
@@ -112,6 +112,8 @@ void    sexp_set_cdr(sexp_t *sexp, sexp_t *cdr_sexp);
 
 sexp_t *sexp_push(sexp_t *stack, sexp_t *sexp);
 sexp_t *sexp_pop(sexp_t **stack);
+
+
 
 /*
  * Macros meant to be replaced by functions at a later date.

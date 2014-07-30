@@ -1,4 +1,4 @@
-/* enforx.h by Christer Enfors, 2014. */
+/* enforx.c by Christer Enfors, 2014. */
 
 #include <stdio.h>
 #include <stdlib.h>
