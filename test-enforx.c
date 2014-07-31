@@ -14,7 +14,7 @@ int main(int argc, char **argv)
 {
   /* test_sym_print(); */
 
-  /* test_sexp_print(); */
+  test_sexp_print();
 
   test_garbage_collection();
   
@@ -43,11 +43,11 @@ void test_sym_print(void)
 void test_sexp_print()
 {
   sexp_t *sexp1       = sexp_ref(sexp_new(CAR_SEXP,     NULL));
-  sexp_t *sexp1_1     = sexp_ref(sexp_new(  CAR_SYM,    sym_new(TYPE_NUM)));
-  sexp_t *sexp1_2     = sexp_ref(sexp_new(  CAR_SEXP,   NULL));
-  sexp_t *sexp1_2_1   = sexp_ref(sexp_new(    CAR_SYM,  sym_new(TYPE_NUM)));
-  sexp_t *sexp1_2_2   = sexp_ref(sexp_new(    CAR_SYM,  sym_new(TYPE_STR)));
-  sexp_t *sexp1_3     = sexp_ref(sexp_new(  CAR_SYM,    sym_new(TYPE_NUM)));
+  sexp_t *sexp1_1     =          sexp_new(  CAR_SYM,    sym_new(TYPE_NUM));
+  sexp_t *sexp1_2     =          sexp_new(  CAR_SEXP,   NULL);
+  sexp_t *sexp1_2_1   =          sexp_new(    CAR_SYM,  sym_new(TYPE_NUM));
+  sexp_t *sexp1_2_2   =          sexp_new(    CAR_SYM,  sym_new(TYPE_STR));
+  sexp_t *sexp1_3     =          sexp_new(  CAR_SYM,    sym_new(TYPE_NUM));
 
   sexp_set_car(sexp1,         sexp1_1);
   sexp_set_cdr(  sexp1_1,     sexp1_2);
@@ -68,11 +68,6 @@ void test_sexp_print()
   printf("\n");
 
   sexp_unref(sexp1);
-  sexp_unref(sexp1_1);
-  sexp_unref(sexp1_2);
-  sexp_unref(sexp1_2_1);
-  sexp_unref(sexp1_2_2);
-  sexp_unref(sexp1_3);
 }
 
 void test_garbage_collection(void)
@@ -103,6 +98,11 @@ void test_garbage_collection(void)
   
   sexp_set_car(sexp1_3, sexp1_3_1);
 
+  /* Set some symbol values */
+  sym_set_num(sexp1_1->sym,   1);
+  sym_set_num(sexp1_2->sym,   2);
+  sym_set_str(sexp1_3_1->sym, "three");
+
   /* Print it, to make sure it looks right. */
   sexp_print_lisp_tree(sexp1);
   printf("\nnum_sexps: %d, num_syms: %d\n", num_sexps, num_syms);
@@ -112,7 +112,7 @@ void test_garbage_collection(void)
    * they are unallocated. */
   sexp_set_cdr(sexp1_2, NULL);
 
-  /* Print again, the list should look like "(0 0)" now. */
+  /* Print again, the list should look like "(1 2)" now. */
   sexp_print_lisp_tree(sexp1);
   printf("\nnum_sexps: %d, num_syms: %d\n", num_sexps, num_syms);
 

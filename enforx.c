@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <assert.h>
 
 #include "enforx.h"
@@ -154,7 +155,7 @@ void sym_set_str(sym_t *sym, char *str)
   sym_clear(sym);
 
   sym->type = TYPE_STR;
-  sym->str  = str;
+  sym->str  = Strdup(str);
 }
  
 /*

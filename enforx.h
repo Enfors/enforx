@@ -125,3 +125,4 @@ void    enforx_end(void);
 
 #define Malloc(x)        malloc(x)
 #define Free(x)          free(x)
+#define Strdup(x)        strdup(x)
