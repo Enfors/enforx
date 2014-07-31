@@ -408,6 +408,24 @@ void sexp_set_cdr(sexp_t *sexp, sexp_t *cdr_sexp)
   sexp->cdr = sexp_ref(cdr_sexp);
 }
 
+sexp_t *sexp_append(sexp_t *list, sexp_t *sexp)
+{
+  sexp_t *cur_sexp = list;
+
+  assert(sexp != NULL);
+
+  /* If list is NULL, then sexp IS the list now. */
+  if (list == NULL)
+    return sexp;
+  
+  while (cur_sexp->cdr)
+    cur_sexp = cur_sexp->cdr;
+
+  sexp_set_cdr(cur_sexp, sexp);
+
+  return list;
+}
+
 sexp_t *sexp_push(sexp_t *stack2, sexp_t *sexp)
 {
   assert(sexp != NULL);

@@ -34,10 +34,15 @@ sexp_list: sexp    { printf("sexp_list: sexp\n"); }
 int main(int argc, char **argv)
 {
   input_tree = sexp_ref(sexp_new(CAR_SEXP, NULL));
+  sexp_push(stack, input_tree);
 
   yyparse();
-  printf("Foo.\n");
+  
+  printf("Parsed input tree:\n");
+  sexp_print_lisp_tree(input_tree);
+  printf("\n");
 
+  sexp_pop(&stack);
   sexp_unref(input_tree);
 
   enforx_end();

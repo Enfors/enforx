@@ -6,6 +6,7 @@
 void test_sym_print(void);
 void test_sexp_print(void);
 void test_garbage_collection(void);
+void test_lists(void);
 
 extern long num_sexps;
 extern long num_syms;
@@ -17,6 +18,8 @@ int main(int argc, char **argv)
   test_sexp_print();
 
   test_garbage_collection();
+
+  test_lists();
   
   enforx_end();
 
@@ -26,7 +29,7 @@ int main(int argc, char **argv)
 void test_sym_print(void)
 {
   sym_t *sym = sym_new(TYPE_NUM);
-  
+ 
   sym_set_num(sym, 42);
   sym_print(sym);
   printf("\n");
@@ -48,6 +51,8 @@ void test_sexp_print()
   sexp_t *sexp1_2_1   =          sexp_new(    CAR_SYM,  sym_new(TYPE_NUM));
   sexp_t *sexp1_2_2   =          sexp_new(    CAR_SYM,  sym_new(TYPE_STR));
   sexp_t *sexp1_3     =          sexp_new(  CAR_SYM,    sym_new(TYPE_NUM));
+
+  printf("\n==== test_sexp_print ====\n");
 
   sexp_set_car(sexp1,         sexp1_1);
   sexp_set_cdr(  sexp1_1,     sexp1_2);
@@ -89,6 +94,9 @@ void test_garbage_collection(void)
   sexp_t *sexp1_2   =          sexp_new(  CAR_SYM,  sym_new(TYPE_NUM));
   sexp_t *sexp1_3   =          sexp_new(  CAR_SEXP, NULL);
   sexp_t *sexp1_3_1 =          sexp_new(  CAR_SYM,  sym_new(TYPE_NUM));
+  sexp_t *sexp1_3_2 =          sexp_new(  CAR_SEXP, NULL);
+
+  printf("\n==== test_garbage_collection() ====\n");
 
   /* Construct a tree looking like "(0 0 (0))". */
   sexp_set_car(sexp1, sexp1_1);
@@ -97,8 +105,9 @@ void test_garbage_collection(void)
   sexp_set_cdr(sexp1_2, sexp1_3);
   
   sexp_set_car(sexp1_3, sexp1_3_1);
+  sexp_set_cdr(sexp1_3_1, sexp1_3_2);
 
-  /* Set some symbol values */
+  /* Set some symbol values - '(1 2 ("three") ())' */
   sym_set_num(sexp1_1->sym,   1);
   sym_set_num(sexp1_2->sym,   2);
   sym_set_str(sexp1_3_1->sym, "three");
@@ -118,4 +127,25 @@ void test_garbage_collection(void)
 
   /* This should unravel the remaining parts, leaving nothing behind. */
   sexp1 = sexp_unref(sexp1);
+}
+
+void test_lists(void)
+{
+  sexp_t *root     = sexp_ref(sexp_new(CAR_SEXP, NULL));
+  sexp_t *list     =          sexp_new(CAR_SYM,  sym_new(TYPE_NUM));
+  sexp_t *appendee =          sexp_new(CAR_SYM,  sym_new(TYPE_NUM));
+
+  printf("\n==== test_lists() ====\n");
+
+  sexp_set_car(root, list);
+  printf("Before append:\n");
+  sexp_print_lisp_tree(root);
+  printf("\n");
+
+  list = sexp_append(list, appendee);
+  printf("After append:\n");
+  sexp_print_lisp_tree(root);
+  printf("\n");
+
+  sexp_unref(root);
 }
