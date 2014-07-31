@@ -3,7 +3,8 @@
 #include <stdio.h>
 #include "enforx.h"
 
-  sexp_t *stack = NULL;
+  sexp_t *stack      = NULL;
+  sexp_t *input_tree = NULL;
 
 %}
 
@@ -32,7 +33,14 @@ sexp_list: sexp    { printf("sexp_list: sexp\n"); }
 
 int main(int argc, char **argv)
 {
+  input_tree = sexp_ref(sexp_new(CAR_SEXP, NULL));
+
   yyparse();
+  printf("Foo.\n");
+
+  sexp_unref(input_tree);
+
+  enforx_end();
 }
 
 yyerror(char *s)
