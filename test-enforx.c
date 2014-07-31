@@ -7,6 +7,7 @@ void test_sym_print(void);
 void test_sexp_print(void);
 void test_garbage_collection(void);
 void test_lists(void);
+void test_stack(void);
 
 extern long num_sexps;
 extern long num_syms;
@@ -20,6 +21,8 @@ int main(int argc, char **argv)
   test_garbage_collection();
 
   test_lists();
+
+  test_stack();
   
   enforx_end();
 
@@ -142,10 +145,41 @@ void test_lists(void)
   sexp_print_lisp_tree(root);
   printf("\n");
 
-  list = sexp_append(list, appendee);
+  sexp_append(list, appendee);
   printf("After append:\n");
   sexp_print_lisp_tree(root);
   printf("\n");
 
   sexp_unref(root);
+}
+
+void test_stack(void)
+{
+  sexp_t *stack = NULL;
+  sexp_t *sexp1 = sexp_ref(sexp_new(CAR_SYM, sym_new(TYPE_NUM)));
+  sexp_t *sexp2 = sexp_ref(sexp_new(CAR_SYM, sym_new(TYPE_NUM)));
+  sexp_t *sexp3 = sexp_ref(sexp_new(CAR_SYM, sym_new(TYPE_NUM)));
+  sexp_t *sexp  = NULL;
+
+  printf("\n==== test_stack() ====\n");
+
+  sym_set_num(sexp1->sym, 1001);
+  sym_set_num(sexp2->sym, 2002);
+  sym_set_num(sexp3->sym, 3003);
+
+  sexp_push(&stack, sexp1);
+  sexp1 = sexp_unref(sexp1);
+
+  sexp_push(&stack, sexp2);
+  sexp2 = sexp_unref(sexp2);
+
+  sexp_push(&stack, sexp3);
+  sexp3 = sexp_unref(sexp3);
+
+  while (sexp = sexp_pop(&stack))
+    {
+      sym_print(sexp->sym);
+      printf("\n");
+      sexp_unref(sexp);
+    }
 }

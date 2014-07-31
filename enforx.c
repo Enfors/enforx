@@ -173,8 +173,7 @@ sexp_t *sexp_new(unsigned const int type, sym_t *sym)
   switch (type)
     {
     case CAR_SYM:
-      sym_ref(sym);
-      sexp->sym = sym;
+      sexp->sym = sym_ref(sym);
       break;
 
     case CAR_SEXP:
@@ -240,6 +239,12 @@ sexp_t *sexp_unref(sexp_t *sexp)
 
   sexp->ref_count--;
 
+  if (sexp->ref_count < 0)
+    {
+      fprintf(stderr, "Warning: sexp_unref(): ref_count is %d. "
+	      "Sexp: %x.\n", sexp->ref_count, sexp);
+    }
+  
   if (sexp->ref_count == 0)
     sexp_del(sexp);
 
@@ -408,44 +413,63 @@ void sexp_set_cdr(sexp_t *sexp, sexp_t *cdr_sexp)
   sexp->cdr = sexp_ref(cdr_sexp);
 }
 
-sexp_t *sexp_append(sexp_t *list, sexp_t *sexp)
+void sexp_append(sexp_t *list, sexp_t *sexp)
 {
   sexp_t *cur_sexp = list;
 
   assert(sexp != NULL);
-
-  /* If list is NULL, then sexp IS the list now. */
-  if (list == NULL)
-    return sexp;
+  assert(list != NULL);
   
   while (cur_sexp->cdr)
     cur_sexp = cur_sexp->cdr;
 
   sexp_set_cdr(cur_sexp, sexp);
-
-  return list;
 }
 
-sexp_t *sexp_push(sexp_t *stack2, sexp_t *sexp)
+void sexp_append_child(sexp_t *parent, sexp_t *child)
 {
+  assert(parent != NULL);
+  assert(child  != NULL);
+  assert(parent->type == CAR_SEXP);
+
+  if (parent->car == NULL)
+    sexp_set_car(parent, child);
+  else
+    sexp_append(parent->car, child);
+}
+
+/*
+ * The stack makes containers for each item it contains.
+ */
+void sexp_push(sexp_t **stack, sexp_t *sexp)
+{
+  sexp_t *container = sexp_ref(sexp_new(CAR_SEXP, NULL));
+
   assert(sexp != NULL);
 
-  sexp->cdr = sexp_ref(stack2);
+  sexp_set_car(container, sexp);
 
-  return sexp;
+  container->cdr = sexp_ref(*stack);
+
+  *stack = container;
 }
 
-sexp_t *sexp_pop(sexp_t **stack2)
+/*
+ * Each item coming out of the stack will have one ref set to it by the stack
+ * (and perhaps other refs set elsewhere). The one who calls sexp_pop() must
+ * unref this ref.
+ */
+sexp_t *sexp_pop(sexp_t **stack)
 {
-  sexp_t *sexp;
+  sexp_t *container, *sexp;
 
-  if (*stack2 == NULL)
+  if (*stack == NULL)
     return NULL;
 
-  sexp = sexp_ref(*stack2);
-  *stack2 = sexp_ref(sexp->cdr);
-
-  sexp->cdr = sexp_unref(sexp->cdr); /* Stop pointing and dec ref_count */
+  container = *stack;
+  sexp = sexp_ref(container->car);
+  *stack = container->cdr; /* Have stack point to the next one (no ref). */
+  sexp_unref(container); /* Container no longer needed, let it be deleted. */
 
   return sexp;
 }
