@@ -2,9 +2,9 @@ CFLAGS = -g
 
 all: enforx test-enforx
 
-enforx: enforx.l parser.y enforx.h
+enforx: lexer.l parser.y enforx.c enforx.h
 	bison -d parser.y
-	flex enforx.l
+	flex lexer.l
 	gcc $(CFLAGS) parser.tab.c lex.yy.c enforx.c -lfl -o $@
 
 test-enforx: test-enforx.c enforx.c enforx.h
