@@ -30,18 +30,21 @@ atom: NUMBER       {
 ;
 
 open_paren: OPEN_PAREN {
-  sexp_push(&stack, sexp_new(CAR_SEXP, NULL));
+  sexp_t *sexp = sexp_ref(sexp_new(CAR_SEXP, NULL));
+  sexp_append_child(sexp_stack_top(stack), sexp);
+  sexp_push(&stack, sexp);
 }
 ;
 
 close_paren: CLOSE_PAREN {
-  sexp_pop(&stack);
+  sexp_unref(sexp_pop(&stack));
+  
 }
 ;
 
 sexp: atom          { 
   printf("sexp: atom\n");
-  sexp_append_child(stack, sexp_new(CAR_SYM, atom));
+  sexp_append_child(sexp_stack_top(stack), sexp_new(CAR_SYM, atom));
   sym_unref(atom);
  }
 | open_paren sexp_list close_paren {

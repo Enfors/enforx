@@ -474,6 +474,17 @@ sexp_t *sexp_pop(sexp_t **stack)
   return sexp;
 }
 
+sexp_t *sexp_stack_top(sexp_t *stack)
+{
+  if (stack == NULL)
+    return NULL;
+  else
+    {
+      assert(stack->car != NULL);
+      return (sexp_t *) stack->car;
+    }
+}
+
 /*
  * Misc functions
  */

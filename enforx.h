@@ -119,6 +119,7 @@ void    sexp_append_child(sexp_t *parent, sexp_t *child);
 
 void    sexp_push(sexp_t **stack, sexp_t *sexp);
 sexp_t *sexp_pop(sexp_t **stack);
+sexp_t *sexp_stack_top(sexp_t *stack);
 
 void    enforx_end(void);
 
