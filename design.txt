@@ -1,10 +1,13 @@
-Hmm. Let's see if I can make sense of how to build simple data structures with the typical CAR / CDR
-type thing in Lisp.
+DESIGN DOCUMENT FOR ENFORX
+==========================
+
+Hmm. Let's see if I can make sense of how to build simple data
+structures with the typical CAR / CDR type thing in Lisp.
   
   
-  Lists
-  =====
-  Lists are simple enough.
+Lists
+-----
+Lists are simple enough.
   
   +-----+-----+    +-----+-----+
   | car | cdr |--->| car | cdr |---> NULL
@@ -15,9 +18,9 @@ type thing in Lisp.
     Data
     
   
-  Trees
-  =====
-  Trees work too. But they lack the ability to attach non-child data to non-leaf nodes...
+Trees
+-----
+Trees work too. But they lack the ability to attach non-child data to non-leaf nodes...
   
   +-----+-----+
   | car | cdr |---> NULL
@@ -44,3 +47,18 @@ type thing in Lisp.
      V                V                V
     Leaf             Leaf             Leaf
     
+
+Evaluation rules
+----------------
+
+1. Lists call the first entry as a function - evaluates to the return
+   value of the function.
+
+2. Symbols evaluate to the value of the last symbol in the cdr chain.
+
+So, in practice:
+
+1. (+ 1 2)       ---> 3 (call + as function)
+
+2. 1 2           ---> 2 (because 2 is last in cdr list)
+   sym1 sym2     ---> (value of sym2) (because sym2 is last in cdr list)
